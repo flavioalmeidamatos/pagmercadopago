@@ -46,8 +46,7 @@ app.post('/api/create_preference', async (req, res) => {
                     success: 'http://localhost:5173',
                     failure: 'http://localhost:5173',
                     pending: 'http://localhost:5173'
-                },
-                auto_return: 'approved'
+                }
             }
         });
 
