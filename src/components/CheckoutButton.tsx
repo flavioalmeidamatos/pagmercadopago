@@ -3,9 +3,11 @@ import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { mercadopagoService } from '../services/mercadopagoService';
 import { useCart } from '../hooks/useCart';
 
-// Inicialize com a PublicKey que vem do arquivo .env
-const mpPublicKey = import.meta.env.VITE_MP_PUBLIC_KEY || '';
-initMercadoPago(mpPublicKey);
+// Inicialize com a PublicKey que vem do arquivo .env (limpando qualquer caractere invisível)
+const mpPublicKey = (import.meta.env.VITE_MP_PUBLIC_KEY || '').trim();
+if (mpPublicKey) {
+    initMercadoPago(mpPublicKey);
+}
 
 export const CheckoutButton = () => {
     const { items, subtotal } = useCart();

@@ -10,7 +10,12 @@ export const mercadopagoService = {
         console.log('Solicitando Preferência de Pagamento ao Backend local...', data);
 
         try {
-            const response = await fetch('http://localhost:3000/api/create_preference', {
+            // Usa o endpoint /api/create_preference para suportar serverless na Vercel
+            const apiUrl = import.meta.env.PROD
+                ? '/api/create_preference'
+                : 'http://localhost:3000/api/create_preference'; // Mantém compatibilidade local com dev:backend
+
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -19,13 +24,13 @@ export const mercadopagoService = {
             });
 
             if (!response.ok) {
-                throw new Error('Falha ao criar preferência');
+                throw new Error('Falha ao criar preferência do Mercado Pago');
             }
 
             const result = await response.json();
             return result.id;
         } catch (error) {
-            console.error('Erro detalhado:', error);
+            console.error('Erro ao chamar o checkout na API:', error);
             throw error;
         }
     }
