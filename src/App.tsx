@@ -30,7 +30,7 @@ const StoreContent = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight"
+            className="text-4xl md:text-5xl lg:text-7xl font-black text-gray-900 tracking-tight leading-tight"
           >
             Produtos em Destaque
           </motion.h1>
@@ -38,7 +38,7 @@ const StoreContent = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-6 text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed"
+            className="mt-6 text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed"
           >
             Descubra o cuidado avançado com fórmulas inovadoras para iluminar, firmar e renovar sua pele todos os dias.
           </motion.p>
