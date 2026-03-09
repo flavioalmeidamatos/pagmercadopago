@@ -61,9 +61,9 @@ export const CheckoutButton = () => {
             {isLoading ? (
                 <button
                     disabled
-                    className="w-full h-16 bg-gray-900 text-white rounded-2xl font-bold flex items-center justify-center cursor-not-allowed"
+                    className="w-full h-12 bg-gray-900 text-white rounded-xl text-sm font-bold flex items-center justify-center cursor-not-allowed"
                 >
-                    <div className="h-6 w-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    <div className="h-5 w-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                 </button>
             ) : preferenceId ? (
                 <div className="w-full relative z-0">
@@ -94,7 +94,7 @@ export const CheckoutButton = () => {
             ) : (
                 <button
                     disabled
-                    className="w-full h-16 bg-red-400 text-white rounded-2xl font-bold flex items-center justify-center cursor-not-allowed"
+                    className="w-full h-12 bg-red-400 text-white rounded-xl text-sm font-bold flex items-center justify-center cursor-not-allowed"
                 >
                     Erro ao processar pagamento
                 </button>

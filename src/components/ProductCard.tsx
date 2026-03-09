@@ -32,7 +32,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, isSe
             </div>
             <motion.button
                 whileTap={{ scale: 0.95 }}
-                className="mt-auto w-full rounded-xl bg-gray-900 py-3 px-4 text-sm font-bold text-white transition-colors hover:bg-gray-800 cursor-pointer"
+                className="mt-auto w-full rounded-full bg-gray-900 py-2.5 px-4 text-xs font-bold uppercase tracking-wider text-white transition-all shadow-sm hover:shadow-md hover:bg-gray-800 cursor-pointer"
             >
                 Comprar
             </motion.button>

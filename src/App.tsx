@@ -55,13 +55,13 @@ const StoreContent = () => {
             <div className="relative z-10">
               <h3 className="text-3xl font-bold text-white mb-4">Nova Linha Retinol</h3>
               <p className="text-gray-400 mb-8 max-w-xs">Redução visível de rugas e uniformização da textura em 2 semanas.</p>
-              <button className="px-8 py-3 bg-white text-gray-900 rounded-full font-bold hover:bg-gray-100 transition-colors cursor-pointer">Saiba Mais</button>
+              <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-sm font-bold shadow-sm hover:shadow-md hover:bg-gray-100 transition-all cursor-pointer">Saiba Mais</button>
             </div>
           </div>
           <div className="bg-rose-100 rounded-[40px] p-12 flex flex-col justify-end">
             <h3 className="text-3xl font-bold text-gray-900 mb-2">Cuide da sua barreira</h3>
             <p className="text-rose-700/70 mb-8">Pantenol e Ceramidas para hidratação profunda e reparação imediata.</p>
-            <button className="px-8 py-3 bg-gray-900 text-white rounded-full font-bold hover:bg-gray-800 transition-colors w-fit cursor-pointer">Ver Kit Completo</button>
+            <button className="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-bold shadow-sm hover:shadow-md hover:bg-gray-800 transition-all w-fit cursor-pointer">Ver Kit Completo</button>
           </div>
         </div>
       </main>
