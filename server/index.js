@@ -51,6 +51,10 @@ app.post('/api/create_preference', async (req, res) => {
         const result = await preference.create({
             body: {
                 items: externalItems,
+                payer: {
+                    email: "cliente.teste@sandbox.mercadopago.com.br",
+                    name: "Cliente Teste"
+                },
                 back_urls: {
                     success: origin,
                     failure: origin,

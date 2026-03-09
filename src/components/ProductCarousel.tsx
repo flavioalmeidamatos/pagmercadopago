@@ -23,7 +23,7 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, onSe
 
     return (
         <div className="relative group">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <button
                     onClick={() => scroll('left')}
                     className="p-3 bg-white/80 backdrop-blur-md rounded-full shadow-lg hover:bg-white text-gray-900 ml-4 cursor-pointer"
@@ -46,7 +46,7 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, onSe
                 ))}
             </motion.div>
 
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <button
                     onClick={() => scroll('right')}
                     className="p-3 bg-white/80 backdrop-blur-md rounded-full shadow-lg hover:bg-white text-gray-900 mr-4 cursor-pointer"

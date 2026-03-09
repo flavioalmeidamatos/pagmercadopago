@@ -51,6 +51,10 @@ export default async function handler(req, res) {
         const result = await preference.create({
             body: {
                 items: externalItems,
+                payer: {
+                    email: "cliente.teste@sandbox.mercadopago.com.br",
+                    name: "Cliente Teste"
+                },
                 back_urls: {
                     success: backUrl,
                     failure: backUrl,
@@ -75,8 +79,8 @@ export default async function handler(req, res) {
             stack: error.stack,
             cause: error.cause
         });
-        
-        return res.status(500).json({ 
+
+        return res.status(500).json({
             error: 'Não foi possível processar o pagamento no momento.',
             details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
