@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Product } from '../types/product';
 import { useCart } from '../hooks/useCart';
@@ -10,6 +11,17 @@ interface ProductDetailsProps {
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onClose }) => {
     const { addItem } = useCart();
+
+    useEffect(() => {
+        if (product) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [product]);
 
     return (
         <AnimatePresence>

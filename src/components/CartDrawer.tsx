@@ -1,4 +1,4 @@
-
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../hooks/useCart';
 import { ShoppingBag, X, Plus, Minus, Trash2 } from 'lucide-react';
@@ -11,6 +11,17 @@ interface CartDrawerProps {
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     const { items, removeItem, updateQuantity, subtotal } = useCart();
+
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
 
     return (
         <AnimatePresence>
