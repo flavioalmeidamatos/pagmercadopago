@@ -6,6 +6,7 @@ import { ProductDetails } from './components/ProductDetails';
 import { CartDrawer } from './components/CartDrawer';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { CookieConsent } from './components/CookieConsent';
 import type { Product } from './types/product';
 import { motion } from 'framer-motion';
 
@@ -77,6 +78,8 @@ const StoreContent = () => {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
       />
+
+      <CookieConsent />
     </div>
   );
 };
