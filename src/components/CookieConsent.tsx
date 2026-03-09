@@ -1,28 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const CookieConsent = () => {
     const [isVisible, setIsVisible] = useState(false);
 
+    const acceptCookies = useCallback(() => {
+        localStorage.setItem('cookie_consent', 'true');
+        setIsVisible(false);
+    }, []);
+
     useEffect(() => {
         // Verifica se o usuário já tem o consentimento salvo
         const consent = localStorage.getItem('cookie_consent');
         if (!consent) {
-            // Mostra o aviso e aceita automaticamente após 5 segundos
             setIsVisible(true);
-
-            const timer = setTimeout(() => {
-                acceptCookies();
-            }, 6000); // 6 segundos de tolerância até sumir
-
-            return () => clearTimeout(timer);
         }
     }, []);
 
-    const acceptCookies = () => {
-        localStorage.setItem('cookie_consent', 'true');
-        setIsVisible(false);
-    };
+    useEffect(() => {
+        if (isVisible) {
+            // Aceita automaticamente após 6 segundos se estiver visível
+            const timer = setTimeout(() => {
+                acceptCookies();
+            }, 6000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [isVisible, acceptCookies]);
 
     return (
         <AnimatePresence>

@@ -1,40 +1,47 @@
-import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { createMPPreference } from './server/mp_common.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN, options: { timeout: 5000 } });
+/**
+ * Revalidation test for the refactored Mercado Pago logic
+ */
+async function revalidateMp() {
+    console.log("🚀 Iniciando revalidação do Mercado Pago...");
 
-async function test() {
-    const preference = new Preference(client);
+    if (!process.env.MP_ACCESS_TOKEN) {
+        console.error("❌ ERRO: MP_ACCESS_TOKEN não encontrado no .env");
+        process.exit(1);
+    }
+
+    const testItems = [
+        {
+            id: 'prod-001',
+            name: 'Cica Balm Refactored',
+            price: 129.90,
+            quantity: 2,
+            category: 'skincare',
+            image: 'https://placeholder.com/image.jpg'
+        }
+    ];
+
     try {
-        const result = await preference.create({
-            body: {
-                items: [{
-                    id: 'test',
-                    title: 'Test Product',
-                    quantity: 1,
-                    unit_price: 10
-                }],
-                payer: {
-                    email: "cliente.teste@sandbox.mercadopago.com.br",
-                    name: "Cliente"
-                },
-                back_urls: {
-                    success: 'http://localhost:5173',
-                    failure: 'http://localhost:5173',
-                    pending: 'http://localhost:5173'
-                },
-                statement_descriptor: 'SKINCARE SHOP',
-                metadata: {
-                    integration_agent: 'antigravity-ai-local',
-                    runtime: 'express-local-dev',
-                    v2_migration: true
-                }
-            }
-        });
-        console.log("Success:", result.id);
+        const result = await createMPPreference(
+            process.env.MP_ACCESS_TOKEN,
+            testItems,
+            'http://localhost:5173',
+            'https://webhook.site/test'
+        );
+
+        if (result && result.id) {
+            console.log("✅ Sucesso! Preferência gerada:", result.id);
+            console.log("🔗 URL de Checkout:", result.init_point);
+        } else {
+            throw new Error("Resposta inválida do Mercado Pago");
+        }
     } catch (error) {
-        console.error("Error creating preference:", JSON.stringify(error, null, 2));
+        console.error("❌ Falha na revalidação:", error.message);
+        if (error.cause) console.error("Causa:", error.cause);
     }
 }
-test();
+
+revalidateMp();

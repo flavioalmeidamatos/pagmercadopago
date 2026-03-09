@@ -1,13 +1,7 @@
-import { MercadoPagoConfig, Preference } from 'mercadopago';
-
-// Instânciação do client Mercado Pago usando o SDK versão 2+
-const client = new MercadoPagoConfig({
-    accessToken: (process.env.MP_ACCESS_TOKEN || '').trim(),
-    options: { timeout: 5000 }
-});
+import { createMPPreference } from '../server/mp_common.js';
 
 export default async function handler(req, res) {
-    // Configuração de CORS - Melhora a segurança permitindo apenas origens conhecidas se possível
+    // Configuração de CORS
     const origin = req.headers.origin;
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', origin || '*');
@@ -28,58 +22,19 @@ export default async function handler(req, res) {
     try {
         const { items } = req.body;
 
-        // Sanitização e Validação básica
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            console.error('Tentativa de checkout com carrinho vazio ou inválido');
-            return res.status(400).json({ error: 'O carrinho está vazio ou é inválido.' });
-        }
+        const result = await createMPPreference(
+            process.env.MP_ACCESS_TOKEN,
+            items,
+            origin || 'https://skincare-shop-mp.vercel.app', // Fallback URL for production
+            process.env.MP_WEBHOOK_URL
+        );
 
-        // Mapeamento rigoroso para evitar dados maliciosos
-        const externalItems = items.map(item => ({
-            id: String(item.id || '').substring(0, 50),
-            title: String(item.name || 'Produto').substring(0, 256),
-            currency_id: 'BRL',
-            picture_url: item.image,
-            description: String(item.description || '').substring(0, 256),
-            quantity: Math.max(1, Number(item.quantity) || 1),
-            unit_price: Math.max(0.1, Number(item.price) || 0)
-        }));
-
-        const backUrl = origin || 'http://localhost:5173';
-        const preference = new Preference(client);
-
-        const result = await preference.create({
-            body: {
-                items: externalItems,
-                payer: {
-                    email: "test_user_196537335@testuser.com",
-                    identification: {
-                        type: "CPF",
-                        number: "19100000000"
-                    }
-                },
-                back_urls: {
-                    success: backUrl,
-                    failure: backUrl,
-                    pending: backUrl
-                },
-                statement_descriptor: 'SKINCARE SHOP',
-                notification_url: process.env.MP_WEBHOOK_URL || undefined,
-                metadata: {
-                    integration_agent: 'antigravity-ai-agent',
-                    v2_migration: true,
-                    checkout_timestamp: new Date().toISOString()
-                }
-            }
-        });
-
-        console.log(`Preferência criada com sucesso: ${result.id}`);
+        console.log(`[Vercel] Preferência criada: ${result.id}`);
         return res.status(200).json({ id: result.id });
     } catch (error) {
-        console.error('Critical Error in Mercado Pago Checkout:', {
+        console.error('Critical Error in Checkout Handler:', {
             message: error.message,
-            stack: error.stack,
-            cause: error.cause
+            stack: error.stack
         });
 
         return res.status(500).json({
@@ -88,3 +43,4 @@ export default async function handler(req, res) {
         });
     }
 }
+

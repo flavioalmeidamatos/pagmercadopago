@@ -4,6 +4,7 @@ import { MercadoPagoConfig, Preference } from 'mercadopago';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createMPPreference } from './mp_common.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,36 +15,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Verifica se o token existe antes de iniciar o client
+// Verifica se o token existe antes de iniciar
 if (!process.env.MP_ACCESS_TOKEN) {
     console.error("ERRO: MP_ACCESS_TOKEN não está definido no arquivo .env");
     process.exit(1);
 }
 
-const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
-
 app.post('/api/create_preference', async (req, res) => {
     try {
         const { items } = req.body;
-
-        // Validação e Sanitização local
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            return res.status(400).json({ error: 'Carrinho vazio ou inválido' });
-        }
-
-        // Mapeamento rigoroso seguindo o padrão da API principal
-        const externalItems = items.map(item => ({
-            id: String(item.id || '').substring(0, 50),
-            title: String(item.name || 'Produto').substring(0, 256),
-            currency_id: 'BRL',
-            picture_url: item.image,
-            description: String(item.description || '').substring(0, 256),
-            category_id: item.category,
-            quantity: Math.max(1, Number(item.quantity) || 1),
-            unit_price: Math.max(0.1, Number(item.price) || 0)
-        }));
-
-        const preference = new Preference(client);
 
         // Origem dinâmica para redirecionamentos locais
         let backUrl = 'http://localhost:5173';
@@ -51,31 +31,13 @@ app.post('/api/create_preference', async (req, res) => {
             backUrl = req.headers.origin;
         }
 
-        const result = await preference.create({
-            body: {
-                items: externalItems,
-                payer: {
-                    email: "test_user_196537335@testuser.com",
-                    identification: {
-                        type: "CPF",
-                        number: "19100000000"
-                    }
-                },
-                back_urls: {
-                    success: backUrl,
-                    failure: backUrl,
-                    pending: backUrl
-                },
-                statement_descriptor: 'SKINCARE SHOP',
-                metadata: {
-                    integration_agent: 'antigravity-ai-local',
-                    runtime: 'express-local-dev',
-                    v2_migration: true
-                }
-            }
-        });
+        const result = await createMPPreference(
+            process.env.MP_ACCESS_TOKEN,
+            items,
+            backUrl
+        );
 
-        console.log(`[Local] Preferência Gerada: ${result.id}`);
+        console.log(`[Local Server] Preferência Gerada: ${result.id}`);
         res.json({ id: result.id });
     } catch (error) {
         console.error('[Express] Erro ao criar preferência:', {
@@ -88,6 +50,7 @@ app.post('/api/create_preference', async (req, res) => {
         });
     }
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
