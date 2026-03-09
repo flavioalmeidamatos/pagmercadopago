@@ -60,7 +60,6 @@ export default async function handler(req, res) {
                     failure: backUrl,
                     pending: backUrl
                 },
-                auto_return: 'approved',
                 statement_descriptor: 'SKINCARE SHOP',
                 notification_url: process.env.MP_WEBHOOK_URL || undefined,
                 metadata: {

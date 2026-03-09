@@ -15,10 +15,20 @@ async function test() {
                     quantity: 1,
                     unit_price: 10
                 }],
+                payer: {
+                    email: "cliente.teste@sandbox.mercadopago.com.br",
+                    name: "Cliente"
+                },
                 back_urls: {
-                    success: 'http://localhost:5173/',
-                    failure: 'http://localhost:5173/',
-                    pending: 'http://localhost:5173/'
+                    success: 'http://localhost:5173',
+                    failure: 'http://localhost:5173',
+                    pending: 'http://localhost:5173'
+                },
+                statement_descriptor: 'SKINCARE SHOP',
+                metadata: {
+                    integration_agent: 'antigravity-ai-local',
+                    runtime: 'express-local-dev',
+                    v2_migration: true
                 }
             }
         });

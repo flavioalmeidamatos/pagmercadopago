@@ -46,7 +46,10 @@ app.post('/api/create_preference', async (req, res) => {
         const preference = new Preference(client);
 
         // Origem dinâmica para redirecionamentos locais
-        const origin = req.headers.origin || 'http://localhost:5173';
+        let backUrl = 'http://localhost:5173';
+        if (req.headers.origin && req.headers.origin !== 'null') {
+            backUrl = req.headers.origin;
+        }
 
         const result = await preference.create({
             body: {
@@ -56,11 +59,10 @@ app.post('/api/create_preference', async (req, res) => {
                     name: "Cliente Teste"
                 },
                 back_urls: {
-                    success: origin,
-                    failure: origin,
-                    pending: origin
+                    success: backUrl,
+                    failure: backUrl,
+                    pending: backUrl
                 },
-                auto_return: 'approved',
                 statement_descriptor: 'SKINCARE SHOP',
                 metadata: {
                     integration_agent: 'antigravity-ai-local',
