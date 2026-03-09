@@ -80,6 +80,17 @@ app.post('/api/create_preference', async (req, res) => {
     }
 });
 
+// Rota para receber os Webhooks do Mercado Pago
+app.post('/api/webhooks/mercadopago', (req, res) => {
+    console.log("\n🔔 [WEBHOOK RECEBIDO] Evento disparado pelo Mercado Pago!");
+    console.log("-> Query Params:", req.query);
+    console.log("-> Body:", JSON.stringify(req.body, null, 2));
+
+    // O Mercado Pago exige uma resposta rápida com status 200 OK
+    // para confirmar que o webhook foi recebido, senão ele fica reenviando.
+    res.status(200).send('Webhook recebido com sucesso');
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
