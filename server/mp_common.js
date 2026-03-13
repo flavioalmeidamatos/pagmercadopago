@@ -37,14 +37,15 @@ export async function createMPPreference(accessToken, items, backUrl, notificati
     const externalItems = mapCartItems(items);
     const preference = new Preference(client);
 
+    // Gerador de e-mail de teste aleatorio para evitar cache de usuario logado
+    const randomSuffix = Math.floor(Math.random() * 10000000);
+
     const body = {
         items: externalItems,
         payer: {
-            email: "test_user_196537335@testuser.com", // Keeping test_user as in previous code
-            identification: {
-                type: "CPF",
-                number: "19100000000"
-            }
+            email: `test_user_${randomSuffix}@testuser.com`,
+            name: "Test",
+            surname: "User"
         },
         back_urls: {
             success: backUrl,

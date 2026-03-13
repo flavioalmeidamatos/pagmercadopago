@@ -52,16 +52,20 @@ app.post('/api/create_preference', async (req, res) => {
     }
 });
 
+// Rota para receber os Webhooks do Mercado Pago
 app.post('/api/webhooks/mercadopago', (req, res) => {
+    // 1. O Mercado Pago exige que respondamos com 200/201 logo de imediato
+    res.status(200).send('Webhook recebido com sucesso');
+
+    console.log("\n🔔 [WEBHOOK RECEBIDO] Evento disparado pelo Mercado Pago!");
+    console.log("-> Action:", req.body?.action || req.body?.type || 'Notificação genérica');
+
+    // Validação de Segurança
     const xSignature = req.headers['x-signature'];
     const xRequestId = req.headers['x-request-id'];
 
-    // 1. O Mercado Pago exige que respondamos com 200/201 logo de imediato
-    res.status(200).send();
-
-    // Se as headers não existirem ou o arquivo .env não tiver a chave, ignoramos o processamento mais a fundo
     if (!xSignature || !xRequestId || !process.env.MP_WEBHOOK_SECRET) {
-        console.log("⚠️ Webhook recebido, mas faltando headers de validação (x-signature/x-request-id) ou MP_WEBHOOK_SECRET não está no .env");
+        console.log("⚠️ Aviso: Faltando headers de validação (x-signature) ou MP_WEBHOOK_SECRET não configurado. Logs continuarão normais, mas a integridade não pôde ser atestada.");
         return;
     }
 
@@ -81,25 +85,24 @@ app.post('/api/webhooks/mercadopago', (req, res) => {
         const dataID = req.body?.data?.id;
 
         if (!dataID || !ts || !hash) {
-            console.log("⚠️ Webhook recebido sem ID de dados ou com assinatura incompleta.");
+            console.log("⚠️ Arquitetura do webhook recebido não permite validação completa de assinatura.");
             return;
         }
 
         // 4. Montar a string manifest para validação da assinatura conforme documentação
         const manifest = `id:${dataID};request-id:${xRequestId};ts:${ts};`;
 
-        // 5. Calcular HMAC-SHA256 usando nosso segredo
+        // 5. Calcular HMAC-SHA256
         const calculatedHash = crypto
             .createHmac('sha256', process.env.MP_WEBHOOK_SECRET)
             .update(manifest)
             .digest('hex');
 
-        // 6. Verificar se os hashes são idênticos
+        // 6. Verificar
         if (calculatedHash === hash) {
-            console.log(`✅ Webhook validado com sucesso! Ação: ${req.body.action || 'Desconhecida'} | ID do Pagamento: ${dataID}`);
-            // O pagamento é genuíno! A partir daqui, você atualizaria o status no banco de dados.
+            console.log(`✅ Webhook Genuíno Validado (HMAC-SHA256)! ID do Pagamento: ${dataID}`);
         } else {
-            console.error('❌ Assinatura de Webhook inválida! Calculado vs Esperado não bate.');
+            console.error('❌ ALERTA DE SEGURANÇA: Assinatura de Webhook inválida! Possível tentativa de fraude.');
         }
     } catch (error) {
         console.error('❌ Erro interno ao validar webhook:', error.message);
