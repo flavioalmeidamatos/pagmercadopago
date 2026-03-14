@@ -24,6 +24,18 @@ export const CheckoutButton = () => {
     const [isWalletReady, setIsWalletReady] = useState(false);
 
     useEffect(() => {
+        if (!walletPreferenceId || paymentMode !== 'wallet') {
+            return;
+        }
+
+        const fallbackTimer = window.setTimeout(() => {
+            setIsWalletReady(true);
+        }, 2500);
+
+        return () => window.clearTimeout(fallbackTimer);
+    }, [walletPreferenceId, paymentMode]);
+
+    useEffect(() => {
         if (!pixPayment || pixPayment.status !== 'pending') {
             return;
         }
@@ -148,19 +160,25 @@ export const CheckoutButton = () => {
                     ) : null}
 
                     {walletPreferenceId ? (
-                        <div className="w-full relative z-0 min-h-[48px] flex items-center justify-center">
+                        <div className="w-full min-h-[56px]">
                             {!isWalletReady && (
-                                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-gray-100 animate-pulse">
-                                    <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                <div className="mb-2 flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-3 py-2 text-xs font-medium text-gray-500">
+                                    <div className="h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                    Carregando opções do Mercado Pago...
                                 </div>
                             )}
-                            <div className={`w-full transition-opacity duration-300 ${isWalletReady ? 'opacity-100' : 'opacity-0'}`}>
+                            <div className="w-full">
                                 <Wallet
                                     initialization={{
                                         preferenceId: walletPreferenceId,
                                         redirectMode: 'self'
                                     }}
                                     onReady={() => setIsWalletReady(true)}
+                                    onError={(walletError: unknown) => {
+                                        console.error('Erro ao carregar Wallet Mercado Pago:', walletError);
+                                        setIsWalletReady(true);
+                                        setError('O checkout do Mercado Pago não carregou corretamente. Tente novamente.');
+                                    }}
                                 />
                             </div>
                         </div>
