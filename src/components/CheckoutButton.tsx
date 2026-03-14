@@ -17,14 +17,13 @@ export const CheckoutButton = () => {
     const [paymentMode, setPaymentMode] = useState<'wallet' | 'pix'>('wallet');
     const [payerEmail, setPayerEmail] = useState('');
     const [pixPayment, setPixPayment] = useState<PixPaymentResponse | null>(null);
-    const [walletPreferenceId, setWalletPreferenceId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [isWalletReady, setIsWalletReady] = useState(false);
 
     useEffect(() => {
-        if (!walletPreferenceId || paymentMode !== 'wallet') {
+        if (paymentMode !== 'wallet') {
             return;
         }
 
@@ -33,7 +32,7 @@ export const CheckoutButton = () => {
         }, 2500);
 
         return () => window.clearTimeout(fallbackTimer);
-    }, [walletPreferenceId, paymentMode]);
+    }, [paymentMode]);
 
     useEffect(() => {
         if (!pixPayment || pixPayment.status !== 'pending') {
@@ -54,51 +53,10 @@ export const CheckoutButton = () => {
 
     useEffect(() => {
         setPixPayment(null);
-        setWalletPreferenceId(null);
         setIsWalletReady(false);
         setError(null);
         setCopied(false);
     }, [items, subtotal]);
-
-    useEffect(() => {
-        if (paymentMode !== 'wallet' || items.length === 0) {
-            return;
-        }
-
-        let isMounted = true;
-
-        const loadWallet = async () => {
-            setIsLoading(true);
-            setError(null);
-            setIsWalletReady(false);
-
-            try {
-                const preferenceId = await mercadopagoService.createWalletPreference({
-                    items,
-                    total: subtotal,
-                    checkoutMode: 'wallet'
-                });
-
-                if (isMounted) {
-                    setWalletPreferenceId(preferenceId);
-                }
-            } catch (walletError) {
-                if (isMounted) {
-                    setError(walletError instanceof Error ? walletError.message : 'Erro ao carregar checkout Mercado Pago');
-                }
-            } finally {
-                if (isMounted) {
-                    setIsLoading(false);
-                }
-            }
-        };
-
-        loadWallet();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [paymentMode, items, subtotal]);
 
     if (items.length === 0) {
         return (
@@ -150,63 +108,51 @@ export const CheckoutButton = () => {
 
             {paymentMode === 'wallet' && (
                 <>
-                    {isLoading && !walletPreferenceId ? (
-                        <button
-                            disabled
-                            className="w-full h-12 bg-gray-900 text-white rounded-xl text-sm font-bold flex items-center justify-center cursor-not-allowed"
-                        >
-                            <div className="h-5 w-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                        </button>
-                    ) : null}
-
-                    {walletPreferenceId ? (
-                        <div className="w-full min-h-[56px]">
-                            {!isWalletReady && (
-                                <div className="mb-2 flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-3 py-2 text-xs font-medium text-gray-500">
-                                    <div className="h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                                    Carregando opções do Mercado Pago...
-                                </div>
-                            )}
-                            <div className="w-full">
-                                <Payment
-                                    initialization={{
-                                        amount: subtotal,
-                                        preferenceId: walletPreferenceId
-                                    }}
-                                    customization={{
-                                        paymentMethods: {
-                                            creditCard: 'all',
-                                            debitCard: 'all',
-                                            ticket: 'all',
-                                            bankTransfer: 'all',
-                                            mercadoPago: 'all',
-                                        },
-                                        visual: {
-                                            hideRedirectionPanel: false,
-                                            style: {
-                                                theme: 'default',
-                                            },
-                                        },
-                                    }}
-                                    locale="pt"
-                                    onSubmit={async ({ formData }) => {
-                                        await mercadopagoService.processBrickPayment({
-                                            items,
-                                            total: subtotal,
-                                            formData,
-                                            payerEmail: typeof formData?.payer?.email === 'string' ? formData.payer.email : undefined,
-                                        });
-                                    }}
-                                    onReady={() => setIsWalletReady(true)}
-                                    onError={(brickError: unknown) => {
-                                        console.error('Erro ao carregar Payment Brick Mercado Pago:', brickError);
-                                        setIsWalletReady(true);
-                                        setError('As opções do Mercado Pago não carregaram corretamente. Tente novamente.');
-                                    }}
-                                />
+                    <div className="w-full min-h-[56px]">
+                        {!isWalletReady && (
+                            <div className="mb-2 flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-3 py-2 text-xs font-medium text-gray-500">
+                                <div className="h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                Carregando opções do Mercado Pago...
                             </div>
+                        )}
+                        <div className="w-full">
+                            <Payment
+                                initialization={{
+                                    amount: subtotal,
+                                }}
+                                customization={{
+                                    paymentMethods: {
+                                        creditCard: 'all',
+                                        debitCard: 'all',
+                                        ticket: 'all',
+                                        bankTransfer: 'all',
+                                        mercadoPago: 'all',
+                                    },
+                                    visual: {
+                                        hideRedirectionPanel: false,
+                                        style: {
+                                            theme: 'default',
+                                        },
+                                    },
+                                }}
+                                locale="pt"
+                                onSubmit={async ({ formData }) => {
+                                    await mercadopagoService.processBrickPayment({
+                                        items,
+                                        total: subtotal,
+                                        formData,
+                                        payerEmail: typeof formData?.payer?.email === 'string' ? formData.payer.email : undefined,
+                                    });
+                                }}
+                                onReady={() => setIsWalletReady(true)}
+                                onError={(brickError: unknown) => {
+                                    console.error('Erro ao carregar Payment Brick Mercado Pago:', brickError);
+                                    setIsWalletReady(true);
+                                    setError('As opções do Mercado Pago não carregaram corretamente. Tente novamente.');
+                                }}
+                            />
                         </div>
-                    ) : null}
+                    </div>
                 </>
             )}
 
