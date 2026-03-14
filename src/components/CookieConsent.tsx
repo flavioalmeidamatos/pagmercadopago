@@ -2,19 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const CookieConsent = () => {
-    const [isVisible, setIsVisible] = useState(false);
+    const [isVisible, setIsVisible] = useState(() => (
+        typeof window !== 'undefined' && !localStorage.getItem('cookie_consent')
+    ));
 
     const acceptCookies = useCallback(() => {
         localStorage.setItem('cookie_consent', 'true');
         setIsVisible(false);
-    }, []);
-
-    useEffect(() => {
-        // Verifica se o usuário já tem o consentimento salvo
-        const consent = localStorage.getItem('cookie_consent');
-        if (!consent) {
-            setIsVisible(true);
-        }
     }, []);
 
     useEffect(() => {

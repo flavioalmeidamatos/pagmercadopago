@@ -1,7 +1,6 @@
-import { createMPPreference, validateCheckoutPayload } from '../server/mp_common.js';
+import { createPixPayment } from '../server/pix_service.js';
 
 export default async function handler(req, res) {
-    // Configuração de CORS
     const origin = req.headers.origin;
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', origin || '*');
@@ -20,23 +19,18 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { items } = validateCheckoutPayload(req.body);
-
-        const result = await createMPPreference(
-            process.env.MP_ACCESS_TOKEN,
-            items,
-            origin || 'https://skincare-shop-mp.vercel.app', // Fallback URL for production
-            process.env.MP_WEBHOOK_URL
-        );
-
-        console.log(`[Vercel] Preferência criada: ${result.id}`);
-        return res.status(200).json({ id: result.id });
+        const result = await createPixPayment({
+            req,
+            payload: req.body
+        });
+        return res.status(200).json(result);
     } catch (error) {
-        const statusCode = error.message?.includes('checkout') || error.message?.includes('carrinho')
+        const statusCode = error.message?.includes('inválido')
+            || error.message?.includes('Pedido não encontrado')
             ? 400
             : 500;
 
-        console.error('Critical Error in Checkout Handler:', {
+        console.error('[PIX] Erro ao criar pagamento:', {
             message: error.message,
             stack: error.stack
         });

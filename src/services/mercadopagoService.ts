@@ -1,14 +1,28 @@
 import type { CartItem } from '../types/product';
 
-interface CheckoutData {
+interface PixCheckoutData {
     items: CartItem[];
     total: number;
+    payerEmail: string;
+}
+
+export interface PixPaymentResponse {
+    orderId: string;
+    paymentId: string | number | null;
+    status: string;
+    paymentStatus: string;
+    statusDetail: string | null;
+    qrCode: string | null;
+    qrCodeBase64: string | null;
+    ticketUrl: string | null;
+    expiresAt: string | null;
+    amount: number;
 }
 
 export const mercadopagoService = {
-    createPreference: async (data: CheckoutData): Promise<string> => {
+    createPixPayment: async (data: PixCheckoutData): Promise<PixPaymentResponse> => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
             const apiUrl = import.meta.env.PROD
@@ -33,19 +47,32 @@ export const mercadopagoService = {
 
             const result = await response.json();
 
-            if (!result.id) {
-                throw new Error('ID de preferência não retornado pelo servidor');
+            if (!result.orderId || !result.qrCode) {
+                throw new Error('Dados do PIX não retornados pelo servidor');
             }
 
-            return result.id;
+            return result as PixPaymentResponse;
         } catch (error: unknown) {
             clearTimeout(timeoutId);
             if (error instanceof Error && error.name === 'AbortError') {
-                console.error('Checkout request timed out');
-                throw new Error('A requisição demorou muito. Tente novamente.');
+                throw new Error('A requisição do PIX demorou muito. Tente novamente.');
             }
-            console.error('Erro ao chamar o checkout na API:', error);
+            console.error('Erro ao chamar a API de PIX:', error);
             throw error;
         }
+    },
+
+    getOrderStatus: async (orderId: string): Promise<PixPaymentResponse> => {
+        const apiUrl = import.meta.env.PROD
+            ? `/api/order_status?orderId=${encodeURIComponent(orderId)}`
+            : `http://localhost:3000/api/order_status?orderId=${encodeURIComponent(orderId)}`;
+
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Erro ao consultar pedido PIX');
+        }
+
+        return response.json();
     }
 };

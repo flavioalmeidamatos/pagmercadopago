@@ -1,0 +1,16 @@
+﻿{
+  "payerEmail": "comprador.teste@example.com",
+  "total": 78.9,
+  "items": [
+    {
+      "id": "6",
+      "name": "Gel de Limpeza Facial Cica Pantenol e Ceramidas",
+      "brand": "O BOTICÁRIO",
+      "price": 78.9,
+      "image": "/images/gel-limpeza-facial-cica-pantenol-ceramidas.jpg",
+      "description": "Limpeza suave e hipoalergênica que acalma e repara a pele.",
+      "category": "Limpeza",
+      "quantity": 1
+    }
+  ]
+}
