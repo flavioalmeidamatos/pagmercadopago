@@ -1,46 +1,29 @@
-import crypto from 'crypto';
+import { extractWebhookSignatureInfo, isValidWebhookSignature } from '../../server/mp_common.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método não permitido' });
     }
 
-    const xSignature = req.headers['x-signature'];
-    const xRequestId = req.headers['x-request-id'];
-
-    // Se as headers não existirem, ignoramos
-    if (!xSignature || !xRequestId || !process.env.MP_WEBHOOK_SECRET) {
+    if (!process.env.MP_WEBHOOK_SECRET) {
         console.warn("⚠️ Webhook recebido sem headers de validação ou secret configurado.");
         return res.status(200).send();
     }
 
     try {
-        const parts = xSignature.split(',');
-        let ts, hash;
-        parts.forEach(p => {
-            const [key, value] = p.split('=');
-            if (key && value) {
-                if (key.trim() === 't') ts = value.trim();
-                if (key.trim() === 'v1') hash = value.trim();
-            }
+        const signatureInfo = extractWebhookSignatureInfo({
+            headers: req.headers,
+            query: req.query,
+            body: req.body
         });
 
-        const dataID = req.body?.data?.id;
-
-        if (!dataID || !ts || !hash) {
+        if (!signatureInfo) {
             console.warn("⚠️ Webhook recebido com assinatura ou payload incompleto.");
             return res.status(200).send();
         }
 
-        const manifest = `id:${dataID};request-id:${xRequestId};ts:${ts};`;
-
-        const calculatedHash = crypto
-            .createHmac('sha256', process.env.MP_WEBHOOK_SECRET)
-            .update(manifest)
-            .digest('hex');
-
-        if (calculatedHash === hash) {
-            console.log(`✅ Webhook validado com sucesso! Ação: ${req.body.action || 'Desconhecida'} | ID: ${dataID}`);
+        if (isValidWebhookSignature(process.env.MP_WEBHOOK_SECRET, signatureInfo)) {
+            console.log(`✅ Webhook validado com sucesso! Ação: ${req.body.action || 'Desconhecida'} | ID: ${signatureInfo.dataId}`);
             // Adicione a logica de salvar no banco aqui.
         } else {
             console.error('❌ Assinatura de Webhook inválida!');

@@ -1,11 +1,14 @@
 import express from 'express';
 import cors from 'cors';
-import { MercadoPagoConfig, Preference } from 'mercadopago';
-import crypto from 'crypto';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createMPPreference } from './mp_common.js';
+import {
+    createMPPreference,
+    extractWebhookSignatureInfo,
+    isValidWebhookSignature,
+    validateCheckoutPayload
+} from './mp_common.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,7 +27,7 @@ if (!process.env.MP_ACCESS_TOKEN) {
 
 app.post('/api/create_preference', async (req, res) => {
     try {
-        const { items } = req.body;
+        const { items } = validateCheckoutPayload(req.body);
 
         // Origem dinâmica para redirecionamentos locais
         let backUrl = 'http://localhost:5173';
@@ -41,12 +44,18 @@ app.post('/api/create_preference', async (req, res) => {
         console.log(`[Local Server] Preferência Gerada: ${result.id}`);
         res.json({ id: result.id });
     } catch (error) {
+        const statusCode = error.message?.includes('checkout') || error.message?.includes('carrinho')
+            ? 400
+            : 500;
+
         console.error('[Express] Erro ao criar preferência:', {
             message: error.message,
             stack: error.stack
         });
-        res.status(500).json({
-            error: 'Erro local ao criar preferência de pagamento',
+        res.status(statusCode).json({
+            error: statusCode === 400
+                ? error.message
+                : 'Erro local ao criar preferência de pagamento',
             details: error.message
         });
     }
@@ -61,46 +70,25 @@ app.post('/api/webhooks/mercadopago', (req, res) => {
     console.log("-> Action:", req.body?.action || req.body?.type || 'Notificação genérica');
 
     // Validação de Segurança
-    const xSignature = req.headers['x-signature'];
-    const xRequestId = req.headers['x-request-id'];
-
-    if (!xSignature || !xRequestId || !process.env.MP_WEBHOOK_SECRET) {
+    if (!process.env.MP_WEBHOOK_SECRET) {
         console.log("⚠️ Aviso: Faltando headers de validação (x-signature) ou MP_WEBHOOK_SECRET não configurado. Logs continuarão normais, mas a integridade não pôde ser atestada.");
         return;
     }
 
     try {
-        // 2. Extrair parâmetros v1 e t da assinatura
-        const parts = xSignature.split(',');
-        let ts, hash;
-        parts.forEach(p => {
-            const [key, value] = p.split('=');
-            if (key && value) {
-                if (key.trim() === 't') ts = value.trim();
-                if (key.trim() === 'v1') hash = value.trim();
-            }
+        const signatureInfo = extractWebhookSignatureInfo({
+            headers: req.headers,
+            query: req.query,
+            body: req.body
         });
 
-        // 3. Obter o id da notificação a partir do body
-        const dataID = req.body?.data?.id;
-
-        if (!dataID || !ts || !hash) {
+        if (!signatureInfo) {
             console.log("⚠️ Arquitetura do webhook recebido não permite validação completa de assinatura.");
             return;
         }
 
-        // 4. Montar a string manifest para validação da assinatura conforme documentação
-        const manifest = `id:${dataID};request-id:${xRequestId};ts:${ts};`;
-
-        // 5. Calcular HMAC-SHA256
-        const calculatedHash = crypto
-            .createHmac('sha256', process.env.MP_WEBHOOK_SECRET)
-            .update(manifest)
-            .digest('hex');
-
-        // 6. Verificar
-        if (calculatedHash === hash) {
-            console.log(`✅ Webhook Genuíno Validado (HMAC-SHA256)! ID do Pagamento: ${dataID}`);
+        if (isValidWebhookSignature(process.env.MP_WEBHOOK_SECRET, signatureInfo)) {
+            console.log(`✅ Webhook Genuíno Validado (HMAC-SHA256)! ID do Pagamento: ${signatureInfo.dataId}`);
         } else {
             console.error('❌ ALERTA DE SEGURANÇA: Assinatura de Webhook inválida! Possível tentativa de fraude.');
         }

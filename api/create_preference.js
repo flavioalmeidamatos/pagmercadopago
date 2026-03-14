@@ -1,4 +1,4 @@
-import { createMPPreference } from '../server/mp_common.js';
+import { createMPPreference, validateCheckoutPayload } from '../server/mp_common.js';
 
 export default async function handler(req, res) {
     // Configuração de CORS
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { items } = req.body;
+        const { items } = validateCheckoutPayload(req.body);
 
         const result = await createMPPreference(
             process.env.MP_ACCESS_TOKEN,
@@ -32,13 +32,19 @@ export default async function handler(req, res) {
         console.log(`[Vercel] Preferência criada: ${result.id}`);
         return res.status(200).json({ id: result.id });
     } catch (error) {
+        const statusCode = error.message?.includes('checkout') || error.message?.includes('carrinho')
+            ? 400
+            : 500;
+
         console.error('Critical Error in Checkout Handler:', {
             message: error.message,
             stack: error.stack
         });
 
-        return res.status(500).json({
-            error: 'Não foi possível processar o pagamento no momento.',
+        return res.status(statusCode).json({
+            error: statusCode === 400
+                ? error.message
+                : 'Não foi possível processar o pagamento no momento.',
             details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }

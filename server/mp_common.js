@@ -1,4 +1,5 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
+import crypto from 'crypto';
 
 /**
  * Common configuration and items mapping for Mercado Pago
@@ -13,6 +14,38 @@ export function getMPClient(accessToken) {
         accessToken: accessToken.trim(),
         options: { timeout: 10000 }
     });
+}
+
+export function normalizeBaseUrl(urlValue, fallbackUrl) {
+    const candidate = (urlValue || fallbackUrl || '').trim();
+
+    if (!candidate) {
+        throw new Error('URL base não configurada para o checkout.');
+    }
+
+    let parsed;
+
+    try {
+        parsed = new URL(candidate);
+    } catch {
+        throw new Error('URL base do checkout é inválida.');
+    }
+
+    return parsed.origin;
+}
+
+export function resolveNotificationUrl(notificationUrl, baseUrl) {
+    const candidate = (notificationUrl || '').trim();
+
+    if (!candidate) {
+        return null;
+    }
+
+    try {
+        return new URL(candidate).toString();
+    } catch {
+        return new URL(candidate, `${normalizeBaseUrl(baseUrl, baseUrl)}/`).toString();
+    }
 }
 
 export function mapCartItems(items) {
@@ -32,25 +65,91 @@ export function mapCartItems(items) {
     }));
 }
 
+export function validateCheckoutPayload(payload) {
+    const items = payload?.items;
+    const total = Number(payload?.total);
+
+    const mappedItems = mapCartItems(items);
+    const calculatedTotal = mappedItems.reduce((sum, item) => (
+        sum + (item.unit_price * item.quantity)
+    ), 0);
+
+    if (!Number.isFinite(total) || total <= 0) {
+        throw new Error('Total do checkout inválido.');
+    }
+
+    if (Math.abs(calculatedTotal - total) > 0.01) {
+        throw new Error('Total do checkout divergente dos itens.');
+    }
+
+    return {
+        items: mappedItems,
+        total: calculatedTotal
+    };
+}
+
+export function extractWebhookSignatureInfo({ headers, query, body }) {
+    const signatureHeader = headers['x-signature'];
+    const requestId = headers['x-request-id'];
+
+    if (!signatureHeader || !requestId) {
+        return null;
+    }
+
+    const segments = String(signatureHeader)
+        .split(',')
+        .map((part) => part.trim().split('='))
+        .filter(([key, value]) => key && value);
+
+    const ts = segments.find(([key]) => key === 't')?.[1];
+    const hash = segments.find(([key]) => key === 'v1')?.[1];
+    const rawDataId = query?.['data.id'] || query?.id || body?.data?.id || body?.id;
+
+    if (!ts || !hash || !rawDataId) {
+        return null;
+    }
+
+    const dataId = String(rawDataId).toLowerCase();
+    const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
+
+    return { hash, manifest, dataId };
+}
+
+export function isValidWebhookSignature(secret, signatureInfo) {
+    if (!secret || !signatureInfo) {
+        return false;
+    }
+
+    const expected = Buffer.from(signatureInfo.hash, 'hex');
+    const calculated = Buffer.from(
+        createHmacSignature(secret, signatureInfo.manifest),
+        'hex'
+    );
+
+    if (expected.length !== calculated.length) {
+        return false;
+    }
+
+    return expected.length > 0 && crypto.timingSafeEqual(expected, calculated);
+}
+
+function createHmacSignature(secret, manifest) {
+    return crypto.createHmac('sha256', secret)
+        .update(manifest)
+        .digest('hex');
+}
+
 export async function createMPPreference(accessToken, items, backUrl, notificationUrl = null) {
     const client = getMPClient(accessToken);
-    const externalItems = mapCartItems(items);
+    const checkoutBaseUrl = normalizeBaseUrl(backUrl, 'http://localhost:5173');
     const preference = new Preference(client);
 
-    // Gerador de e-mail de teste aleatorio para evitar cache de usuario logado
-    const randomSuffix = Math.floor(Math.random() * 10000000);
-
     const body = {
-        items: externalItems,
-        payer: {
-            email: `test_user_${randomSuffix}@testuser.com`,
-            name: "Test",
-            surname: "User"
-        },
+        items,
         back_urls: {
-            success: backUrl,
-            failure: backUrl,
-            pending: backUrl
+            success: checkoutBaseUrl,
+            failure: checkoutBaseUrl,
+            pending: checkoutBaseUrl
         },
         auto_return: "approved",
         statement_descriptor: 'SKINCARE SHOP',
@@ -58,12 +157,14 @@ export async function createMPPreference(accessToken, items, backUrl, notificati
             integration_agent: 'antigravity-ai-refactored',
             runtime: process.env.VERCEL ? 'serverless-vercel' : 'express-node',
             v2_migration: true,
-            checkout_timestamp: new Date().toISOString()
+            checkout_timestamp: new Date().toISOString(),
+            items_count: items.length
         }
     };
 
-    if (notificationUrl) {
-        body.notification_url = notificationUrl;
+    const resolvedNotificationUrl = resolveNotificationUrl(notificationUrl, checkoutBaseUrl);
+    if (resolvedNotificationUrl) {
+        body.notification_url = resolvedNotificationUrl;
     }
 
     return await preference.create({ body });
