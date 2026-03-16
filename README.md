@@ -1,6 +1,6 @@
 # cadclientes
 
-Loja em React + TypeScript + Vite com carrinho e checkout via Mercado Pago.
+Loja em React + TypeScript + Vite com carrinho de compras.
 
 ## Scripts
 
@@ -15,9 +15,7 @@ npm run preview
 - `src/App.tsx`: vitrine principal
 - `src/components`: interface de produtos, carrinho e checkout
 - `src/context/CartContext.tsx`: estado global do carrinho
-- `src/services/mercadopagoService.ts`: integração frontend com backend de pagamento
-- `server/index.js`: backend local para criação de preferência Mercado Pago
-- `api/`: endpoints para ambiente serverless
+- `server/index.js`: backend local
 
 ## Observações
 

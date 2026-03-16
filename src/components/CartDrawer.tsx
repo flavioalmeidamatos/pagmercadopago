@@ -119,7 +119,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                             <CheckoutButton />
 
                             <p className="text-center text-xs text-gray-400">
-                                Pague com segurança via Mercado Pago
+                                Finalize sua compra com segurança
                             </p>
                         </div>
                     </motion.div>

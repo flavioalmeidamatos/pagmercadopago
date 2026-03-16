@@ -13,17 +13,6 @@ export function readEnv(keys, { required = false, label } = {}) {
     return '';
 }
 
-export function getMercadoPagoAccessToken() {
-    return readEnv(['MERCADOPAGO_ACCESS_TOKEN', 'MP_ACCESS_TOKEN'], {
-        required: true,
-        label: 'Access Token do Mercado Pago'
-    });
-}
-
-export function getMercadoPagoWebhookSecret() {
-    return readEnv(['MERCADOPAGO_WEBHOOK_SECRET', 'MP_WEBHOOK_SECRET']);
-}
-
 export function getSupabaseUrl() {
     return readEnv(['NEXT_PUBLIC_SUPABASE_URL', 'VITE_SUPABASE_URL'], {
         required: true,
@@ -58,13 +47,4 @@ export function getRequestBaseUrl(req, fallback = '') {
     }
 
     return fallback;
-}
-
-export function getWebhookUrl(req) {
-    const baseUrl = getRequestBaseUrl(req);
-    if (!baseUrl || baseUrl.includes('localhost')) {
-        return '';
-    }
-
-    return `${baseUrl.replace(/\/$/, '')}/api/webhooks/mercadopago`;
 }

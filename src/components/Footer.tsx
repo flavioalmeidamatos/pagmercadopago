@@ -6,9 +6,9 @@ export const Footer = () => {
             <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-8">
                 <div className="flex items-center gap-2">
                     <Sparkles className="text-gray-900" size={20} />
-                    <span className="text-lg font-black tracking-tighter text-gray-900 uppercase">SKINCARE.CO - versão: Mercado Pago</span>
+                    <span className="text-lg font-black tracking-tighter text-gray-900 uppercase">SKINCARE.CO</span>
                 </div>
-                <p className="text-gray-400 text-sm">© 2026 SKINCARE.CO - versão: Mercado Pago. Todos os direitos reservados. Feito com amor.</p>
+                <p className="text-gray-400 text-sm">© 2026 SKINCARE.CO. Todos os direitos reservados. Feito com amor.</p>
                 <div className="flex gap-8 text-gray-400 text-sm font-medium">
                     <a href="#" className="hover:text-gray-900 transition-colors">Termos</a>
                     <a href="#" className="hover:text-gray-900 transition-colors">Privacidade</a>

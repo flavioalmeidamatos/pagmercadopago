@@ -22,18 +22,7 @@ export type Database = {
           external_reference: string
           id: string
           items: Json
-          last_webhook_at: string | null
-          mercadopago_payload: Json | null
-          mercadopago_payment_id: number | null
-          mercadopago_payment_status: string
-          mercadopago_status_detail: string | null
-          notification_url: string | null
           order_status: string
-          payment_approved_at: string | null
-          payment_expiration_at: string | null
-          payment_method: string
-          qr_code: string | null
-          ticket_url: string | null
           transaction_amount: number
           updated_at: string
         }
@@ -44,18 +33,7 @@ export type Database = {
           external_reference: string
           id?: string
           items?: Json
-          last_webhook_at?: string | null
-          mercadopago_payload?: Json | null
-          mercadopago_payment_id?: number | null
-          mercadopago_payment_status?: string
-          mercadopago_status_detail?: string | null
-          notification_url?: string | null
           order_status?: string
-          payment_approved_at?: string | null
-          payment_expiration_at?: string | null
-          payment_method?: string
-          qr_code?: string | null
-          ticket_url?: string | null
           transaction_amount: number
           updated_at?: string
         }
@@ -66,84 +44,11 @@ export type Database = {
           external_reference?: string
           id?: string
           items?: Json
-          last_webhook_at?: string | null
-          mercadopago_payload?: Json | null
-          mercadopago_payment_id?: number | null
-          mercadopago_payment_status?: string
-          mercadopago_status_detail?: string | null
-          notification_url?: string | null
           order_status?: string
-          payment_approved_at?: string | null
-          payment_expiration_at?: string | null
-          payment_method?: string
-          qr_code?: string | null
-          ticket_url?: string | null
           transaction_amount?: number
           updated_at?: string
         }
         Relationships: []
-      }
-      payment_webhook_events: {
-        Row: {
-          action: string | null
-          created_at: string
-          event_key: string
-          id: string
-          mercadopago_notification_id: string | null
-          mercadopago_resource_id: string | null
-          mercadopago_topic: string | null
-          notification_payload: Json
-          order_id: string | null
-          processed_at: string | null
-          processing_error: string | null
-          processing_status: string
-          request_id: string | null
-          signature_valid: boolean | null
-          updated_at: string
-        }
-        Insert: {
-          action?: string | null
-          created_at?: string
-          event_key: string
-          id?: string
-          mercadopago_notification_id?: string | null
-          mercadopago_resource_id?: string | null
-          mercadopago_topic?: string | null
-          notification_payload?: Json
-          order_id?: string | null
-          processed_at?: string | null
-          processing_error?: string | null
-          processing_status?: string
-          request_id?: string | null
-          signature_valid?: boolean | null
-          updated_at?: string
-        }
-        Update: {
-          action?: string | null
-          created_at?: string
-          event_key?: string
-          id?: string
-          mercadopago_notification_id?: string | null
-          mercadopago_resource_id?: string | null
-          mercadopago_topic?: string | null
-          notification_payload?: Json
-          order_id?: string | null
-          processed_at?: string | null
-          processing_error?: string | null
-          processing_status?: string
-          request_id?: string | null
-          signature_valid?: boolean | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_webhook_events_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
@@ -160,10 +65,6 @@ export type Database = {
     }
   }
 }
-
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
