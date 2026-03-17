@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { products } from './data/products';
 import { ProductCarousel } from './components/ProductCarousel';
@@ -9,6 +10,7 @@ import { Footer } from './components/Footer';
 import { CookieConsent } from './components/CookieConsent';
 import type { Product } from './types/product';
 import { motion } from 'framer-motion';
+import { CheckoutResult } from './pages/CheckoutResult';
 
 const StoreContent = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -69,15 +71,9 @@ const StoreContent = () => {
 
       <Footer />
 
-      <ProductDetails
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-      />
+      <ProductDetails product={selectedProduct} onClose={() => setSelectedProduct(null)} />
 
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-      />
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
       <CookieConsent />
     </div>
@@ -86,8 +82,13 @@ const StoreContent = () => {
 
 export default function App() {
   return (
-    <CartProvider>
-      <StoreContent />
-    </CartProvider>
+    <BrowserRouter>
+      <CartProvider>
+        <Routes>
+          <Route path="/" element={<StoreContent />} />
+          <Route path="/checkout/:status" element={<CheckoutResult />} />
+        </Routes>
+      </CartProvider>
+    </BrowserRouter>
   );
 }

@@ -22,7 +22,13 @@ export type Database = {
           external_reference: string
           id: string
           items: Json
+          last_webhook_event_at: string | null
+          merchant_order_id: number | null
           order_status: string
+          payment_id: number | null
+          payment_status: string | null
+          payment_status_detail: string | null
+          preference_id: string | null
           transaction_amount: number
           updated_at: string
         }
@@ -33,7 +39,13 @@ export type Database = {
           external_reference: string
           id?: string
           items?: Json
+          last_webhook_event_at?: string | null
+          merchant_order_id?: number | null
           order_status?: string
+          payment_id?: number | null
+          payment_status?: string | null
+          payment_status_detail?: string | null
+          preference_id?: string | null
           transaction_amount: number
           updated_at?: string
         }
@@ -44,9 +56,51 @@ export type Database = {
           external_reference?: string
           id?: string
           items?: Json
+          last_webhook_event_at?: string | null
+          merchant_order_id?: number | null
           order_status?: string
+          payment_id?: number | null
+          payment_status?: string | null
+          payment_status_detail?: string | null
+          preference_id?: string | null
           transaction_amount?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      webhook_events: {
+        Row: {
+          action: string | null
+          created_at: string
+          id: string
+          order_external_reference: string | null
+          payload: Json
+          processed_at: string | null
+          processing_error: string | null
+          resource_id: string | null
+          topic: string
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string
+          id?: string
+          order_external_reference?: string | null
+          payload?: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          resource_id?: string | null
+          topic: string
+        }
+        Update: {
+          action?: string | null
+          created_at?: string
+          id?: string
+          order_external_reference?: string | null
+          payload?: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          resource_id?: string | null
+          topic?: string
         }
         Relationships: []
       }
@@ -178,6 +232,9 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export const Constants = {
   public: {

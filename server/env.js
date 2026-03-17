@@ -27,6 +27,13 @@ export function getSupabaseSecretKey() {
     });
 }
 
+export function getMercadoPagoAccessToken() {
+    return readEnv(['MERCADOPAGO_ACCESS_TOKEN', 'MP_ACCESS_TOKEN'], {
+        required: true,
+        label: 'Access Token do Mercado Pago'
+    });
+}
+
 export function getRequestBaseUrl(req, fallback = '') {
     const forwardedProto = req.headers['x-forwarded-proto'];
     const forwardedHost = req.headers['x-forwarded-host'];
