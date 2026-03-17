@@ -5,7 +5,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { fileURLToPath } from 'url';
 import { createPreference, getMerchantOrder, getPayment } from './mercadopago.js';
-import { getRequestBaseUrl } from './env.js';
+import { getRequestBaseUrl, hasSupabaseAdminConfig } from './env.js';
 import {
     buildOrderPayload,
     createPendingOrder,
@@ -84,7 +84,7 @@ app.post('/api/create_preference', async (req, res) => {
             return res.status(400).json({ error: 'E-mail do comprador é obrigatório.' });
         }
 
-        const baseUrl = process.env.FRONTEND_URL || getRequestBaseUrl(req, 'http://localhost:5173');
+        const baseUrl = getRequestBaseUrl(req, 'http://localhost:5173');
         const externalReference = `order-${Date.now()}-${randomUUID()}`;
         const backUrls = {
             success: buildBackUrl(baseUrl, 'success', externalReference),
@@ -100,14 +100,18 @@ app.post('/api/create_preference', async (req, res) => {
             notification_url: getNotificationUrl(req),
         });
 
-        await createPendingOrder(
-            buildOrderPayload({
-                externalReference,
-                preferenceId: preference.id,
-                items,
-                payer,
-            })
-        );
+        if (hasSupabaseAdminConfig()) {
+            await createPendingOrder(
+                buildOrderPayload({
+                    externalReference,
+                    preferenceId: preference.id,
+                    items,
+                    payer,
+                })
+            );
+        } else {
+            console.warn('Supabase admin não configurado; checkout seguirá sem persistir o pedido.');
+        }
 
         return res.json({
             init_point: preference.init_point,
@@ -116,7 +120,8 @@ app.post('/api/create_preference', async (req, res) => {
         });
     } catch (error) {
         console.error('Erro ao criar preferência Mercado Pago:', error);
-        return res.status(500).json({ error: 'Erro ao criar preferência de pagamento.' });
+        const message = error instanceof Error ? error.message : 'Erro ao criar preferência de pagamento.';
+        return res.status(500).json({ error: message });
     }
 });
 

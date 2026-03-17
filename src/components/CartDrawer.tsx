@@ -102,23 +102,29 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                             )}
                         </div>
 
-                        <div className="p-8 border-t bg-gray-50 space-y-4">
-                            <div className="flex items-center justify-between text-lg">
-                                <span className="text-gray-600">Subtotal</span>
-                                <span className="font-semibold">
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subtotal)}
-                                </span>
-                            </div>
-                            <div className="flex items-center justify-between text-2xl font-bold">
-                                <span>Total</span>
-                                <span>
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subtotal)}
-                                </span>
+                        <div className="space-y-4 border-t bg-gradient-to-b from-white to-slate-50 p-6 sm:p-8">
+                            <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.05)]">
+                                <div className="flex items-center justify-between text-base">
+                                    <span className="text-slate-500">Subtotal</span>
+                                    <span className="font-semibold text-slate-900">
+                                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subtotal)}
+                                    </span>
+                                </div>
+                                <div className="my-4 h-px bg-slate-100" />
+                                <div className="flex items-center justify-between text-[1.75rem] font-black tracking-tight text-slate-950">
+                                    <span>Total</span>
+                                    <span>
+                                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subtotal)}
+                                    </span>
+                                </div>
+                                <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                                    Confirme seus dados e siga para o pagamento protegido.
+                                </p>
                             </div>
 
                             <CheckoutButton />
 
-                            <p className="text-center text-xs text-gray-400">
+                            <p className="text-center text-xs text-slate-400">
                                 Finalize sua compra com segurança
                             </p>
                         </div>

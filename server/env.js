@@ -27,6 +27,13 @@ export function getSupabaseSecretKey() {
     });
 }
 
+export function hasSupabaseAdminConfig() {
+    const url = readEnv(['NEXT_PUBLIC_SUPABASE_URL', 'VITE_SUPABASE_URL']);
+    const secretKey = readEnv(['SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY']);
+
+    return Boolean(url && secretKey);
+}
+
 export function getMercadoPagoAccessToken() {
     return readEnv(['MERCADOPAGO_ACCESS_TOKEN', 'MP_ACCESS_TOKEN'], {
         required: true,
@@ -34,23 +41,70 @@ export function getMercadoPagoAccessToken() {
     });
 }
 
-export function getRequestBaseUrl(req, fallback = '') {
-    const forwardedProto = req.headers['x-forwarded-proto'];
-    const forwardedHost = req.headers['x-forwarded-host'];
-    const host = forwardedHost || req.headers.host;
-    const origin = req.headers.origin;
+function getFirstHeaderValue(value) {
+    if (Array.isArray(value)) {
+        return value[0] || '';
+    }
 
-    if (origin && origin !== 'null') {
+    return String(value || '')
+        .split(',')[0]
+        .trim();
+}
+
+function normalizeBaseUrl(value) {
+    if (!value || value === 'null' || value === 'undefined') {
+        return '';
+    }
+
+    const candidate = String(value).trim().replace(/\/+$/, '');
+
+    try {
+        const url = new URL(candidate);
+        return url.origin;
+    } catch {
+        return '';
+    }
+}
+
+export function getRequestBaseUrl(req, fallback = '') {
+    const origin = normalizeBaseUrl(req.headers.origin);
+    if (origin) {
         return origin;
     }
+
+    const referer = getFirstHeaderValue(req.headers.referer);
+    if (referer) {
+        try {
+            return new URL(referer).origin;
+        } catch {
+            // Ignora referer inválido e continua a resolução.
+        }
+    }
+
+    const forwardedProto = getFirstHeaderValue(req.headers['x-forwarded-proto']);
+    const forwardedHost = getFirstHeaderValue(req.headers['x-forwarded-host']);
+    const host = forwardedHost || getFirstHeaderValue(req.headers.host);
 
     if (host) {
         const protocol = forwardedProto || (host.includes('localhost') ? 'http' : 'https');
         return `${protocol}://${host}`;
     }
 
-    if (process.env.VERCEL_URL) {
-        return `https://${process.env.VERCEL_URL}`;
+    const configuredAppUrl = normalizeBaseUrl(
+        readEnv(['FRONTEND_URL', 'APP_URL', 'SITE_URL', 'NEXT_PUBLIC_SITE_URL', 'VITE_APP_URL'])
+    );
+    if (configuredAppUrl) {
+        return configuredAppUrl;
+    }
+
+    const vercelProductionUrl = normalizeBaseUrl(readEnv(['VERCEL_PROJECT_PRODUCTION_URL']));
+    if (vercelProductionUrl) {
+        return vercelProductionUrl;
+    }
+
+    const vercelUrl = readEnv(['VERCEL_URL']);
+    if (vercelUrl) {
+        return `https://${vercelUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '')}`;
     }
 
     return fallback;
