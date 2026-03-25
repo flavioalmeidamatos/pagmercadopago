@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/auth";
 import { getOrdersByUser } from "@/lib/data/store";
+import { CheckoutSuccessHandler } from "@/components/store/checkout-success-handler";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 
@@ -9,6 +10,7 @@ export default async function OrdersPage() {
 
   return (
     <div className="container py-12">
+      <CheckoutSuccessHandler />
       <h1 className="text-4xl font-semibold tracking-tight">Meus pedidos</h1>
       <div className="mt-8 grid gap-5">
         {orders.length === 0 ? (
@@ -49,4 +51,3 @@ export default async function OrdersPage() {
     </div>
   );
 }
-
