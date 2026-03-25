@@ -369,5 +369,5 @@ values
   ('shipping_flat_rate', '24.90'::jsonb),
   ('promo_banner', '"Frete fixo nacional e 10% off no cupom LUXE10 nas compras acima de R$ 299."'::jsonb),
   ('hero_tag', '"Curadoria premium para glow e ritual completo"'::jsonb),
-  ('whatsapp_number', '"5511999999999"'::jsonb)
+  ('whatsapp_number', '"5521988681799"'::jsonb)
 on conflict (key) do nothing;

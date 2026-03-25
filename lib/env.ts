@@ -19,7 +19,7 @@ export const env = {
   stripeSecretKey: getValue("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: getValue("STRIPE_WEBHOOK_SECRET_LIVE"),
   siteUrl: getValue("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000",
-  whatsappNumber: getValue("NEXT_PUBLIC_WHATSAPP_NUMBER") || "5511999999999"
+  whatsappNumber: getValue("NEXT_PUBLIC_WHATSAPP_NUMBER") || "5521988681799"
 };
 
 export function hasSupabaseEnv() {
@@ -33,4 +33,3 @@ export function hasServiceRole() {
 export function hasStripeEnv() {
   return Boolean(env.stripePublishableKey && env.stripeSecretKey);
 }
-

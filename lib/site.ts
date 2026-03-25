@@ -4,7 +4,7 @@ export const defaultSiteSettings: SiteSettings = {
   shippingFlatRate: 24.9,
   promoBanner: "Frete fixo nacional e 10% off no cupom LUXE10 nas compras acima de R$ 299.",
   heroTag: "Ritual premium para pele e perfume",
-  whatsappNumber: "5511999999999"
+  whatsappNumber: "5521988681799"
 };
 
 export const categoriesSeed = [
@@ -33,4 +33,3 @@ export const categoriesSeed = [
     description: "Fragrâncias elegantes e memoráveis."
   }
 ];
-
