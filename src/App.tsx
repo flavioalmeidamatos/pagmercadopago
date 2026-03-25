@@ -10,7 +10,6 @@ import { Footer } from './components/Footer';
 import { CookieConsent } from './components/CookieConsent';
 import type { Product } from './types/product';
 import { motion } from 'framer-motion';
-import { CheckoutResult } from './pages/CheckoutResult';
 
 const StoreContent = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -86,7 +85,6 @@ export default function App() {
       <CartProvider>
         <Routes>
           <Route path="/" element={<StoreContent />} />
-          <Route path="/checkout/:status" element={<CheckoutResult />} />
         </Routes>
       </CartProvider>
     </BrowserRouter>

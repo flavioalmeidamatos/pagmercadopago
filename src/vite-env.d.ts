@@ -5,9 +5,6 @@ interface ImportMetaEnv {
     readonly NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY?: string
     readonly VITE_SUPABASE_URL?: string
     readonly VITE_SUPABASE_ANON_KEY?: string
-    readonly VITE_MP_ENV?: string
-    readonly VITE_MP_PUBLIC_KEY?: string
-    readonly VITE_MP_TEST_PUBLIC_KEY?: string
 }
 
 interface ImportMeta {

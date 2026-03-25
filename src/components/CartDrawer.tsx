@@ -118,14 +118,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                     </span>
                                 </div>
                                 <p className="mt-3 text-sm leading-relaxed text-slate-500">
-                                    Confirme seus dados e siga para o pagamento protegido.
+                                    Revise os itens do pedido enquanto preparamos a próxima integração de pagamento.
                                 </p>
                             </div>
 
                             <CheckoutButton />
 
                             <p className="text-center text-xs text-slate-400">
-                                Finalize sua compra com segurança
+                                O carrinho permanece ativo durante a troca de gateway
                             </p>
                         </div>
                     </motion.div>
