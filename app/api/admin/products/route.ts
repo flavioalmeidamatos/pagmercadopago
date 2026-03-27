@@ -21,6 +21,8 @@ const productSchema = z.object({
 
 export async function POST(request: Request) {
   await requireAdmin();
+  // The generated Database type is not complete enough for typed inserts yet.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = createSupabaseAdminClient() as any;
 
   if (!supabase) {

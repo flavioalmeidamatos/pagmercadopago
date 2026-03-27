@@ -12,6 +12,8 @@ const refundSchema = z.object({
 export async function POST(request: Request) {
   await requireAdmin();
   const stripe = getStripe();
+  // The generated Database type is not complete enough for typed updates yet.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = createSupabaseAdminClient() as any;
 
   if (!stripe || !supabase) {

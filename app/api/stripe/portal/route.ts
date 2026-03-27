@@ -7,6 +7,8 @@ import { env } from "@/lib/env";
 export async function POST() {
   const user = await getCurrentUser();
   const stripe = getStripe();
+  // The generated Database type is not complete enough for typed reads here.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = createSupabaseAdminClient() as any;
 
   if (!user) {

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ReviewsList } from "@/components/store/reviews-list";
 import { getProductBySlug } from "@/lib/data/store";
 import { formatCurrency } from "@/lib/utils";

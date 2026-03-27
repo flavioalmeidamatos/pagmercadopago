@@ -1,8 +1,8 @@
-import type { CartItem, OrderSummary, Product, ProductCategory } from "@/types/domain";
+import type { OrderSummary, Product, ProductCategory } from "@/types/domain";
+import type { Database } from "@/types/supabase";
 import { fallbackProducts, defaultCoupons } from "@/lib/mock-data";
 import { defaultSiteSettings, categoriesSeed } from "@/lib/site";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
-import { calculateCartTotals } from "@/lib/commerce";
 
 type CatalogFilters = {
   category?: string;
@@ -15,7 +15,28 @@ type CatalogFilters = {
   search?: string;
 };
 
-function normalizeProduct(product: any): Product {
+type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
+type CouponRow = Database["public"]["Tables"]["coupons"]["Row"];
+type FavoriteRow = Database["public"]["Tables"]["favorites"]["Row"];
+type OrderItemRow = Database["public"]["Tables"]["order_items"]["Row"];
+type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
+type ProductImageRow = Database["public"]["Tables"]["product_images"]["Row"];
+type ProductRow = Database["public"]["Tables"]["products"]["Row"];
+type ReviewRow = Database["public"]["Tables"]["reviews"]["Row"];
+type SiteSettingRow = Database["public"]["Tables"]["site_settings"]["Row"];
+
+type ProductWithRelations = ProductRow & {
+  category?: CategoryRow | null;
+  product_images?: ProductImageRow[] | null;
+  images?: ProductImageRow[] | null;
+  reviews?: ReviewRow[] | null;
+};
+
+type OrderWithItems = OrderRow & {
+  items?: OrderItemRow[] | null;
+};
+
+function normalizeProduct(product: ProductWithRelations): Product {
   return {
     id: product.id,
     slug: product.slug,
@@ -32,13 +53,13 @@ function normalizeProduct(product: any): Product {
     is_kit: Boolean(product.is_kit),
     category_id: product.category_id,
     category: product.category ?? null,
-    images: (product.product_images ?? product.images ?? []).map((image: any, index: number) => ({
+    images: (product.product_images ?? product.images ?? []).map((image: ProductImageRow, index: number) => ({
       id: image.id ?? `${product.id}-${index}`,
       image_url: image.image_url,
       alt_text: image.alt_text ?? null,
       sort_order: image.sort_order ?? index
     })),
-    reviews: (product.reviews ?? []).map((review: any) => ({
+    reviews: (product.reviews ?? []).map((review: ReviewRow) => ({
       id: review.id,
       rating: review.rating,
       title: review.title,
@@ -95,7 +116,7 @@ function applyFilters(products: Product[], filters: CatalogFilters = {}) {
 }
 
 export async function getCategories(): Promise<ProductCategory[]> {
-  const supabase = (await createSupabaseServerClient()) as any;
+  const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return categoriesSeed;
@@ -110,11 +131,11 @@ export async function getCategories(): Promise<ProductCategory[]> {
     return categoriesSeed;
   }
 
-  return data;
+  return data as ProductCategory[];
 }
 
 export async function getProducts(filters: CatalogFilters = {}) {
-  const supabase = (await createSupabaseServerClient()) as any;
+  const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return applyFilters(fallbackProducts, filters);
@@ -129,7 +150,7 @@ export async function getProducts(filters: CatalogFilters = {}) {
     return applyFilters(fallbackProducts, filters);
   }
 
-  return applyFilters(data.map(normalizeProduct), filters);
+  return applyFilters((data as ProductWithRelations[]).map(normalizeProduct), filters);
 }
 
 export async function getFeaturedProducts() {
@@ -148,7 +169,7 @@ export async function getProductBySlug(slug: string) {
 }
 
 export async function getSiteSettings() {
-  const supabase = (await createSupabaseServerClient()) as any;
+  const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return defaultSiteSettings;
@@ -161,7 +182,7 @@ export async function getSiteSettings() {
   }
 
   const settings = { ...defaultSiteSettings };
-  for (const entry of data) {
+  for (const entry of data as SiteSettingRow[]) {
     if (entry.key === "shipping_flat_rate") {
       settings.shippingFlatRate = Number(entry.value ?? settings.shippingFlatRate);
     }
@@ -181,7 +202,7 @@ export async function getSiteSettings() {
 
 export async function validateCoupon(code: string) {
   const normalized = code.trim().toUpperCase();
-  const supabase = createSupabaseAdminClient() as any;
+  const supabase = createSupabaseAdminClient();
 
   if (supabase) {
     const { data } = await supabase
@@ -189,10 +210,10 @@ export async function validateCoupon(code: string) {
       .select("*")
       .eq("code", normalized)
       .eq("is_active", true)
-      .maybeSingle();
+    .maybeSingle();
 
     if (data) {
-      return data;
+      return data as CouponRow;
     }
   }
 
@@ -202,7 +223,7 @@ export async function validateCoupon(code: string) {
 }
 
 export async function getOrdersByUser(userId: string): Promise<OrderSummary[]> {
-  const supabase = (await createSupabaseServerClient()) as any;
+  const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
     return [];
@@ -215,7 +236,7 @@ export async function getOrdersByUser(userId: string): Promise<OrderSummary[]> {
     .order("created_at", { ascending: false });
 
   return (
-    data?.map((order: any) => ({
+    (data as OrderWithItems[] | null)?.map((order) => ({
       id: order.id,
       status: order.status,
       total_amount: Number(order.total_amount),
@@ -225,7 +246,7 @@ export async function getOrdersByUser(userId: string): Promise<OrderSummary[]> {
       created_at: order.created_at,
       stripe_session_id: order.stripe_session_id,
       payment_intent_id: order.payment_intent_id,
-      items: (order.items ?? []).map((item: any) => ({
+      items: (order.items ?? []).map((item) => ({
         id: item.id,
         product_name: item.product_name,
         quantity: item.quantity,
@@ -237,7 +258,7 @@ export async function getOrdersByUser(userId: string): Promise<OrderSummary[]> {
 }
 
 export async function getRecentOrders(limit = 8): Promise<OrderSummary[]> {
-  const supabase = createSupabaseAdminClient() as any;
+  const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
     return [];
@@ -250,7 +271,7 @@ export async function getRecentOrders(limit = 8): Promise<OrderSummary[]> {
     .limit(limit);
 
   return (
-    data?.map((order: any) => ({
+    (data as OrderWithItems[] | null)?.map((order) => ({
       id: order.id,
       status: order.status,
       total_amount: Number(order.total_amount),
@@ -260,7 +281,7 @@ export async function getRecentOrders(limit = 8): Promise<OrderSummary[]> {
       created_at: order.created_at,
       stripe_session_id: order.stripe_session_id,
       payment_intent_id: order.payment_intent_id,
-      items: (order.items ?? []).map((item: any) => ({
+      items: (order.items ?? []).map((item) => ({
         id: item.id,
         product_name: item.product_name,
         quantity: item.quantity,
@@ -272,7 +293,7 @@ export async function getRecentOrders(limit = 8): Promise<OrderSummary[]> {
 }
 
 export async function getFavoritesByUser(userId: string) {
-  const supabase = (await createSupabaseServerClient()) as any;
+  const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return [];
   }
@@ -282,5 +303,5 @@ export async function getFavoritesByUser(userId: string) {
     .select("product_id")
     .eq("user_id", userId);
 
-  return data?.map((entry: any) => entry.product_id) ?? [];
+  return (data as FavoriteRow[] | null)?.map((entry) => entry.product_id) ?? [];
 }

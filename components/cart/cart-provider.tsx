@@ -4,7 +4,6 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useState,
   type ReactNode
 } from "react";
@@ -30,21 +29,30 @@ const FAVORITES_KEY = "lumina-favorites";
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [favorites, setFavorites] = useState<string[]>([]);
-
-  useEffect(() => {
-    const cart = localStorage.getItem(CART_KEY);
-    const storedFavorites = localStorage.getItem(FAVORITES_KEY);
-
-    if (cart) {
-      setItems(JSON.parse(cart));
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") {
+      return [];
     }
 
-    if (storedFavorites) {
-      setFavorites(JSON.parse(storedFavorites));
+    try {
+      const cart = window.localStorage.getItem(CART_KEY);
+      return cart ? (JSON.parse(cart) as CartItem[]) : [];
+    } catch {
+      return [];
     }
-  }, []);
+  });
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
+
+    try {
+      const storedFavorites = window.localStorage.getItem(FAVORITES_KEY);
+      return storedFavorites ? (JSON.parse(storedFavorites) as string[]) : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     localStorage.setItem(CART_KEY, JSON.stringify(items));
@@ -119,21 +127,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const value = useMemo(
-    () => ({
-      items,
-      favorites,
-      addItem,
-      buyNow,
-      removeItem,
-      updateQuantity,
-      clearCart,
-      toggleFavorite,
-      subtotal: items.reduce((total, item) => total + item.price * item.quantity, 0),
-      itemsCount: items.reduce((total, item) => total + item.quantity, 0)
-    }),
-    [items, favorites]
-  );
+  const value = {
+    items,
+    favorites,
+    addItem,
+    buyNow,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    toggleFavorite,
+    subtotal: items.reduce((total, item) => total + item.price * item.quantity, 0),
+    itemsCount: items.reduce((total, item) => total + item.quantity, 0)
+  };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

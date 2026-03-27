@@ -20,6 +20,8 @@ const checkoutSchema = z.object({
 export async function POST(request: Request) {
   const stripe = getStripe();
   const user = await getCurrentUser();
+  // The generated Database type is not complete enough for typed writes yet.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = createSupabaseAdminClient() as any;
 
   if (!user) {

@@ -26,6 +26,8 @@ export async function requireUser() {
 
 export async function getCurrentProfile(): Promise<Profile | null> {
   const user = await getCurrentUser();
+  // The generated Database type is not complete enough for typed profile reads yet.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = (await createSupabaseServerClient()) as any;
 
   if (!user || !supabase) {

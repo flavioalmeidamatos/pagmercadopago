@@ -7,6 +7,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const stripe = getStripe();
+  // The generated Database type is not complete enough for typed webhook mutations.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = createSupabaseAdminClient() as any;
   const signature = (await headers()).get("stripe-signature");
 
