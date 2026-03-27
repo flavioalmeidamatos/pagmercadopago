@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "predev": "node scripts/check-local-env.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
