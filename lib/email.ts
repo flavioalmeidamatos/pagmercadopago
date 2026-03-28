@@ -100,7 +100,7 @@ async function submitFormSubmit(
           Authorization: `Bearer ${env.resendApiKey}`
         },
         body: JSON.stringify({
-          from: "Lumina Beautiful <onboarding@resend.dev>", // Or verified domain
+          from: "Lumina Beautiful <vendas@send.resolveplanilhas.com.br>", // Verified subdomain
           to: [payload.buyerEmail],
           subject: `Pedido pago #${payload.orderId} - Lumina Beautiful`,
           html: buildHtmlOrderMessage(payload)
