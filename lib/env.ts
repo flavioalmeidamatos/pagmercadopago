@@ -23,7 +23,7 @@ export const env = {
   formSubmitSenderEmail: getValue("FORMSUBMIT_SENDER_EMAIL"),
   formSubmitAccessToken: getValue("FORMSUBMIT_ACCESS_TOKEN"),
   formSubmitEndpoint:
-    getValue("FORMSUBMIT_ENDPOINT") || "https://formsubmit.co/el/tumohu"
+    getValue("FORMSUBMIT_ENDPOINT") || "https://formsubmit.co/ajax/770eccbc04facd37dd202269b151fe98"
 };
 
 export function hasSupabaseEnv() {
