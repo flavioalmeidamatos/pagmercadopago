@@ -18,7 +18,7 @@ export function CheckoutSuccessHandler() {
 
     handledRef.current = true;
     clearCart();
-    toast.success("Pagamento confirmado. Carrinho limpo e retorno para a vitrine iniciado.");
+    toast.success("Pagamento Concluído com Sucesso. Obrigado.");
 
     const timeoutId = window.setTimeout(() => {
       router.replace("/");
