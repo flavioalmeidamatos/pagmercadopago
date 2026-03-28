@@ -1,10 +1,16 @@
 import { HeroSection } from "@/components/store/hero-section";
+import { CheckoutSuccessBanner } from "@/components/store/checkout-success-banner";
 import { ProductGrid } from "@/components/store/product-grid";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getFeaturedProducts, getKitProducts, getSiteSettings } from "@/lib/data/store";
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams
+}: {
+  searchParams?: Promise<{ checkout?: string }>;
+}) {
+  const params = await searchParams;
   const [featuredProducts, kitProducts, settings] = await Promise.all([
     getFeaturedProducts(),
     getKitProducts(),
@@ -13,6 +19,7 @@ export default async function HomePage() {
 
   return (
     <div className="pb-16">
+      {params?.checkout === "success" && <CheckoutSuccessBanner />}
       <HeroSection heroTag={settings.heroTag} />
 
       <section className="container py-14">

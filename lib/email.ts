@@ -48,20 +48,27 @@ export async function sendPaidOrderEmail(payload: PaidOrderEmailPayload) {
     return;
   }
 
-  const formData = new FormData();
+  const formData = new URLSearchParams();
   formData.set("name", "Lumina Beautiful");
   formData.set("email", env.formSubmitSenderEmail);
   formData.set("_replyto", payload.buyerEmail);
   formData.set("_cc", payload.buyerEmail);
   formData.set("_subject", `Pedido pago #${payload.orderId}`);
+  formData.set("_url", env.siteUrl);
   formData.set("message", buildOrderMessage(payload));
 
   const response = await fetch(env.formSubmitEndpoint, {
     method: "POST",
-    body: formData
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Origin: env.siteUrl,
+      Referer: `${env.siteUrl}/`
+    },
+    body: formData,
+    redirect: "manual"
   });
 
-  if (!response.ok) {
+  if (![200, 302].includes(response.status)) {
     throw new Error("Falha ao enviar o e-mail de confirmação do pedido.");
   }
 }
