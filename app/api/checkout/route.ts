@@ -14,7 +14,8 @@ const checkoutSchema = z.object({
       quantity: z.number().int().positive()
     })
   ),
-  couponCode: z.string().optional()
+  couponCode: z.string().optional(),
+  forceEmail: z.string().email().optional()
 });
 
 export async function POST(request: Request) {
@@ -133,19 +134,20 @@ export async function POST(request: Request) {
     mode: "payment",
     payment_method_types: ["card", "boleto"],
     // customer: stripeCustomerId,
+    customer_email: payload.forceEmail || user.email || undefined,
     success_url: `${env.siteUrl}/?checkout=success`,
     cancel_url: `${env.siteUrl}/cart?checkout=cancelled`,
     payment_intent_data: {
       metadata: {
         order_id: createdOrder.id,
         user_id: user.id,
-        buyer_email: user.email ?? ""
+        buyer_email: payload.forceEmail || user.email || ""
       }
     },
     metadata: {
       order_id: createdOrder.id,
       user_id: user.id,
-      buyer_email: user.email ?? "",
+      buyer_email: payload.forceEmail || user.email || "",
       coupon_code: coupon?.code ?? ""
     },
     shipping_options: [

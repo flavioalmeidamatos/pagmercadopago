@@ -10,9 +10,13 @@ import { Button } from "@/components/ui/button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export function CheckoutButton({
-  couponCode
+  couponCode,
+  forceEmail,
+  disabled = false
 }: {
   couponCode?: string;
+  forceEmail?: string;
+  disabled?: boolean;
 }) {
   const router = useRouter();
   const { items } = useCart();
@@ -83,7 +87,8 @@ export function CheckoutButton({
         },
         body: JSON.stringify({
           items,
-          couponCode
+          couponCode,
+          forceEmail
         })
       });
 
@@ -117,7 +122,7 @@ export function CheckoutButton({
 
   return (
     <div className="space-y-2">
-      <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isLoading}>
+      <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isLoading || disabled}>
         {isLoading ? (
           "Redirecionando para o pagamento..."
         ) : (

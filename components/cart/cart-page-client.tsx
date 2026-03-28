@@ -16,7 +16,13 @@ import { formatCurrency } from "@/lib/utils";
 
 export function CartPageClient() {
   const { items, removeItem, updateQuantity, clearCart } = useCart();
+  const [email, setEmail] = useState("");
   const [couponCode, setCouponCode] = useState("");
+
+  const isEmailValid = useMemo(() => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9]{2,}$/;
+    return emailRegex.test(email);
+  }, [email]);
 
   const coupon = useMemo(
     () => defaultCoupons.find((entry) => entry.code === couponCode.trim().toUpperCase()) ?? null,
@@ -100,6 +106,25 @@ export function CartPageClient() {
             <span className="text-muted">Frete</span>
             <span>{formatCurrency(totals.shipping)}</span>
           </div>
+
+          <div className="space-y-2 border-y border-border py-4">
+            <label className="text-sm font-semibold text-foreground">Confirmar E-mail para Recibo</label>
+            <Input
+              type="email"
+              value={email}
+              autoFocus
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Digite seu e-mail para finalizar"
+              className={!isEmailValid && email ? "border-danger" : ""}
+            />
+            {!isEmailValid && email && (
+              <p className="text-xs text-danger">Por favor, insira um e-mail válido (RFC).</p>
+            )}
+            <p className="text-xs text-muted">
+              O pagamento só será liberado após a validação do e-mail.
+            </p>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm text-muted">Cupom de desconto</label>
             <Input
@@ -119,7 +144,7 @@ export function CartPageClient() {
             <span>Total</span>
             <span>{formatCurrency(totals.total)}</span>
           </div>
-          <CheckoutButton couponCode={coupon?.code} />
+          <CheckoutButton couponCode={coupon?.code} forceEmail={email} disabled={!isEmailValid} />
           <Button variant="outline" className="w-full" onClick={clearCart}>
             Limpar carrinho
           </Button>
