@@ -34,6 +34,12 @@ export async function POST(request: Request) {
     const orderId = session.metadata?.order_id;
 
     if (orderId) {
+      console.info("Webhook checkout.session.completed recebido.", {
+        orderId,
+        sessionId: session.id,
+        paymentStatus: session.payment_status
+      });
+
       const { data: order } = await supabase
         .from("orders")
         .select("id, status, total_amount, shipping_amount, discount_amount, user_id")
@@ -59,13 +65,23 @@ export async function POST(request: Request) {
         })
         .eq("order_id", orderId);
 
-      const buyerEmail =
+      const checkoutBuyerEmail =
         session.customer_details?.email ??
         session.customer_email ??
         session.metadata?.buyer_email ??
         null;
 
-      if (buyerEmail && order?.status !== "paid") {
+      let buyerEmail = checkoutBuyerEmail;
+
+      if (!buyerEmail && order?.user_id) {
+        const {
+          data: { user }
+        } = await supabase.auth.admin.getUserById(order.user_id);
+
+        buyerEmail = user?.email ?? null;
+      }
+
+      if (buyerEmail && session.payment_status === "paid") {
         const { data: items } = await supabase
           .from("order_items")
           .select("product_name, quantity, unit_price")
@@ -90,11 +106,14 @@ export async function POST(request: Request) {
             console.info("Confirmação de pagamento enviada para o comprador.", {
               orderId,
               buyerEmail,
+              previousOrderStatus: order?.status ?? null,
               emailSource: session.customer_details?.email
                 ? "customer_details"
                 : session.customer_email
                   ? "customer_email"
-                  : "metadata",
+                  : checkoutBuyerEmail
+                    ? "metadata"
+                    : "supabase_auth",
               formSubmitStatus: result?.status,
               redirectLocation: result?.location ?? null
             });
@@ -113,6 +132,10 @@ export async function POST(request: Request) {
           userId: order?.user_id ?? null
         });
       }
+    } else {
+      console.warn("Webhook checkout.session.completed sem order_id na metadata.", {
+        sessionId: session.id
+      });
     }
   }
 
