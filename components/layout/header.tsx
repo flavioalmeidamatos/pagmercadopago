@@ -6,6 +6,10 @@ import { useState } from "react";
 import { useCart } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
 import { CartSheet } from "@/components/cart/cart-sheet";
+import { LogOut, User } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const nav = [
   { href: "/", label: "Home" },
@@ -18,6 +22,29 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const { itemsCount } = useCart();
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
+  const supabase = createSupabaseBrowserClient();
+
+  useEffect(() => {
+    if (!supabase) return;
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
+
+  const handleSignOut = async () => {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+    router.refresh();
+  };
 
   return (
     <>
@@ -62,6 +89,21 @@ export function Header() {
                 Favoritos
               </Link>
             </Button>
+            
+            {user ? (
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="hidden sm:inline-flex text-destructive hover:text-destructive hover:bg-destructive/10">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </Button>
+            ) : (
+              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+                <Link href="/account">
+                  <User className="mr-2 h-4 w-4" />
+                  Entrar
+                </Link>
+              </Button>
+            )}
+
             <Button variant="outline" size="sm" onClick={() => setCartOpen(true)}>
               <ShoppingBag className="mr-2 h-4 w-4" />
               Carrinho
