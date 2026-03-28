@@ -29,12 +29,15 @@ export async function POST(request: Request) {
     );
   }
 
-  if (event.type === "checkout.session.completed") {
+  if (
+    event.type === "checkout.session.completed" ||
+    event.type === "checkout.session.async_payment_succeeded"
+  ) {
     const session = event.data.object as Stripe.Checkout.Session;
     const orderId = session.metadata?.order_id;
 
     if (orderId) {
-      console.info("Webhook checkout.session.completed recebido.", {
+      console.info(`Webhook ${event.type} recebido.`, {
         orderId,
         sessionId: session.id,
         paymentStatus: session.payment_status
@@ -49,7 +52,7 @@ export async function POST(request: Request) {
       await supabase
         .from("orders")
         .update({
-          status: "paid",
+          status: session.payment_status === "paid" ? "paid" : "pending",
           stripe_session_id: session.id,
           payment_intent_id:
             typeof session.payment_intent === "string" ? session.payment_intent : null
@@ -136,6 +139,23 @@ export async function POST(request: Request) {
       console.warn("Webhook checkout.session.completed sem order_id na metadata.", {
         sessionId: session.id
       });
+    }
+  }
+
+  if (event.type === "checkout.session.async_payment_failed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const orderId = session.metadata?.order_id;
+
+    if (orderId) {
+      await supabase
+        .from("orders")
+        .update({ status: "failed" })
+        .eq("id", orderId);
+
+      await supabase
+        .from("payments")
+        .update({ provider_status: session.payment_status })
+        .eq("order_id", orderId);
     }
   }
 
