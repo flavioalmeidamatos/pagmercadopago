@@ -118,7 +118,7 @@ export function CartPageClient() {
               className={!isEmailValid && email ? "border-danger" : ""}
             />
             {!isEmailValid && email && (
-              <p className="text-xs text-danger">Por favor, insira um e-mail válido (RFC).</p>
+              <p className="text-xs text-danger">Por favor, insira um e-mail válido.</p>
             )}
             <p className="text-xs text-muted">
               O pagamento só será liberado após a validação do e-mail.
